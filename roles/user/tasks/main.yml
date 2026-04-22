@@ -17,13 +17,14 @@
     group: "{{ workstation_user }}"
     mode: "0700"
 
-- name: Install authorized_keys
-  ansible.builtin.copy:
+- name: Fetch SSH public keys from github.com/{{ workstation_github_user }}.keys
+  ansible.builtin.get_url:
+    url: "https://github.com/{{ workstation_github_user }}.keys"
     dest: "/home/{{ workstation_user }}/.ssh/authorized_keys"
-    content: "{{ workstation_ssh_keys | join('\n') }}\n"
     owner: "{{ workstation_user }}"
     group: "{{ workstation_user }}"
     mode: "0600"
+    force: true
 
 - name: Grant sudo group password-required sudo
   ansible.builtin.copy:

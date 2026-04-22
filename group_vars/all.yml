@@ -8,8 +8,8 @@ workstation_user_groups:
   - audio
   - tty
 
-workstation_ssh_keys:
-  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICAWW8j9bqbI52CVqM36MsgM08fW9+oIOzq7qIe2guyz Elevenails@github"
+# SSH pubkeys are fetched live from https://github.com/<user>.keys
+workstation_github_user: Elevennails
 
 tmux_repo: "https://github.com/Elevennails/tmux.config"
 nvim_repo: "https://github.com/Elevennails/kickstart.nvim"
