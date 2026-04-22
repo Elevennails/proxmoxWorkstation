@@ -39,10 +39,10 @@ cat <<'EOF'
  Build complete.
 
  Next steps:
-   1. Log out of root.
-   2. Log in on tty1 as 'simon' (password was set during PVE install;
-      if not, run 'passwd simon' as root first).
+   1. As root, set a password for the new user: 'passwd <username>'
+      (this unlocks console login, sudo, and the PVE web UI).
+   2. Log out of root and log in on tty1 as your new user.
    3. Run 'startx' to launch openbox.
-   4. PVE web UI: https://<host>:8006  (log in as simon@pam)
+   4. PVE web UI: https://<host>:8006  (log in as <username>@pam)
 ============================================================
 EOF

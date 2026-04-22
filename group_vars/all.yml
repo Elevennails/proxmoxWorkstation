@@ -1,6 +1,6 @@
 ---
-workstation_user: simon
-workstation_user_comment: "Simon"
+# workstation_user is prompted for at playbook start (see site.yml vars_prompt)
+workstation_user_comment: "Workstation user"
 workstation_user_groups:
   - sudo
   - video
