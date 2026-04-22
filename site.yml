@@ -6,7 +6,6 @@
   vars_prompt:
     - name: workstation_user
       prompt: "Username to create on the host"
-      default: simon
       private: false
   roles:
     - user
