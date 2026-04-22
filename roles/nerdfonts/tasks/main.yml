@@ -1,0 +1,57 @@
+---
+- name: Ensure Nerd Fonts install directory exists
+  ansible.builtin.file:
+    path: "{{ nerdfonts_install_dir }}/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ nerdfonts_list }}"
+
+- name: Check for existing install marker
+  ansible.builtin.stat:
+    path: "{{ nerdfonts_install_dir }}/{{ item }}/.installed-{{ nerdfonts_version }}"
+  register: nerdfonts_marker
+  loop: "{{ nerdfonts_list }}"
+
+- name: Download Nerd Font zip
+  ansible.builtin.get_url:
+    url: "https://github.com/ryanoasis/nerd-fonts/releases/download/{{ nerdfonts_version }}/{{ item.item }}.zip"
+    dest: "/tmp/nerdfont-{{ item.item }}.zip"
+    mode: "0644"
+  loop: "{{ nerdfonts_marker.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: not item.stat.exists
+
+- name: Extract Nerd Font zip
+  ansible.builtin.unarchive:
+    src: "/tmp/nerdfont-{{ item.item }}.zip"
+    dest: "{{ nerdfonts_install_dir }}/{{ item.item }}"
+    remote_src: true
+  loop: "{{ nerdfonts_marker.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: not item.stat.exists
+  notify: rebuild font cache
+
+- name: Write install marker
+  ansible.builtin.copy:
+    dest: "{{ nerdfonts_install_dir }}/{{ item.item }}/.installed-{{ nerdfonts_version }}"
+    content: "{{ nerdfonts_version }}\n"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ nerdfonts_marker.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: not item.stat.exists
+
+- name: Remove downloaded zip
+  ansible.builtin.file:
+    path: "/tmp/nerdfont-{{ item.item }}.zip"
+    state: absent
+  loop: "{{ nerdfonts_marker.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: not item.stat.exists

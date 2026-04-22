@@ -33,3 +33,11 @@ workstation_apt_packages:
   - slock
   - chromium
   - virt-viewer
+  - unzip
+  - fontconfig
+
+# Nerd Fonts — patched dev fonts from ryanoasis/nerd-fonts
+nerdfonts_version: "v3.2.1"
+nerdfonts_install_dir: /usr/local/share/fonts/NerdFonts
+nerdfonts_list:
+  - JetBrainsMono
