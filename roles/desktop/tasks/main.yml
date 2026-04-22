@@ -14,6 +14,7 @@
     dest: "/home/{{ workstation_user }}/.xinitrc"
     content: |
       #!/bin/sh
+      eval "$(dbus-launch --sh-syntax)"
       exec openbox-session
     owner: "{{ workstation_user }}"
     group: "{{ workstation_user }}"
@@ -35,13 +36,11 @@
     group: "{{ workstation_user }}"
     mode: "0644"
 
-- name: Seed openbox autostart (xterm + slock bind)
+- name: Install openbox autostart (ported from source workstation)
   ansible.builtin.copy:
+    src: autostart
     dest: "/home/{{ workstation_user }}/.config/openbox/autostart"
-    content: |
-      #!/bin/sh
-      xterm &
     owner: "{{ workstation_user }}"
     group: "{{ workstation_user }}"
     mode: "0755"
-    force: false
+

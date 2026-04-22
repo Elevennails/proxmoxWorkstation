@@ -1,0 +1,33 @@
+# Ensure 2 desktops
+
+# Start xterm on desktop 1
+xterm -fullscreen -fg white -bg black -e "tmux attach-session -t 0 || tmux new-session -s 0" &
+XTERM_PID=$!
+
+#Start Chromium on desktop 2
+chromium --process-per-site --disable-extensions --disable-sync --disable-translate --disable-background-networking --disable-component-update --disable-breakpad --no-first-run \
+    --no-default-browser-check --password-store=basic --start-maximized --disable-session-crashed-bubble --hide-crash-restore-bubble --user-data-dir=$host/.config/chrome-proxmox \
+    --disable-restore-session-state --test-type --app=https://127.0.0.1:8006 &
+CHROME_PID=$!
+
+sleep 2
+
+# Wait for both processes to exit
+# Monitor function that checks for running processes
+monitor_processes() {
+    while true; do
+        # Check if Chrome, xterm, or any virt-viewer/remote-viewer processes are running
+        if ! pgrep -x chromium > /dev/null && \
+           ! pgrep -x xterm > /dev/null && \
+           ! pgrep -x virt-viewer > /dev/null && \
+           ! pgrep -x remote-viewer > /dev/null; then
+            # All processes closed, exit openbox
+            openbox --exit
+            break
+        fi
+        sleep 2
+    done
+}
+
+# Start monitoring in background
+monitor_processes &
