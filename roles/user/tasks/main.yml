@@ -1,4 +1,11 @@
 ---
+- name: Ensure sudo is installed (prerequisite for sudoers config below)
+  ansible.builtin.apt:
+    name: sudo
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
 - name: Ensure workstation user exists
   ansible.builtin.user:
     name: "{{ workstation_user }}"
