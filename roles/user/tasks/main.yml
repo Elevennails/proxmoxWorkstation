@@ -1,0 +1,53 @@
+---
+- name: Ensure workstation user exists
+  ansible.builtin.user:
+    name: "{{ workstation_user }}"
+    comment: "{{ workstation_user_comment }}"
+    shell: /bin/bash
+    groups: "{{ workstation_user_groups }}"
+    append: true
+    create_home: true
+    state: present
+
+- name: Ensure .ssh directory exists
+  ansible.builtin.file:
+    path: "/home/{{ workstation_user }}/.ssh"
+    state: directory
+    owner: "{{ workstation_user }}"
+    group: "{{ workstation_user }}"
+    mode: "0700"
+
+- name: Install authorized_keys
+  ansible.builtin.copy:
+    dest: "/home/{{ workstation_user }}/.ssh/authorized_keys"
+    content: "{{ workstation_ssh_keys | join('\n') }}\n"
+    owner: "{{ workstation_user }}"
+    group: "{{ workstation_user }}"
+    mode: "0600"
+
+- name: Grant sudo group password-required sudo
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/10-sudo-group
+    content: "%sudo ALL=(ALL:ALL) ALL\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: /usr/sbin/visudo -cf %s
+
+- name: List existing PVE users
+  ansible.builtin.command: pveum user list --output-format json
+  register: pve_user_list
+  changed_when: false
+
+- name: Create PVE user {{ workstation_user }}@pam
+  ansible.builtin.command: >
+    pveum user add {{ workstation_user }}@pam
+    --comment "Workstation admin"
+  when: (workstation_user + '@pam') not in (pve_user_list.stdout | from_json | map(attribute='userid') | list)
+
+- name: Assign PVE Administrator role to {{ workstation_user }}@pam
+  ansible.builtin.command: >
+    pveum acl modify /
+    --users {{ workstation_user }}@pam
+    --roles Administrator
+  changed_when: false

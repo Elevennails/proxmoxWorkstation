@@ -1,0 +1,35 @@
+---
+workstation_user: simon
+workstation_user_comment: "Simon"
+workstation_user_groups:
+  - sudo
+  - video
+  - input
+  - audio
+  - tty
+
+workstation_ssh_keys:
+  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICAWW8j9bqbI52CVqM36MsgM08fW9+oIOzq7qIe2guyz Elevenails@github"
+
+tmux_repo: "https://github.com/Elevennails/tmux.config"
+nvim_repo: "https://github.com/Elevennails/kickstart.nvim"
+
+# Neovim release tag — "stable" tracks the latest stable, or pin (e.g. "v0.10.2").
+neovim_release: "stable"
+neovim_tarball: "nvim-linux-x86_64.tar.gz"
+neovim_install_root: /opt
+neovim_install_dir: /opt/nvim-linux-x86_64
+neovim_bin_symlink: /usr/local/bin/nvim
+
+workstation_apt_packages:
+  - git
+  - tmux
+  - xorg
+  - xinit
+  - xserver-xorg-legacy
+  - dbus-x11
+  - openbox
+  - xterm
+  - slock
+  - chromium
+  - virt-viewer

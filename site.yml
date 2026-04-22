@@ -1,0 +1,11 @@
+---
+- name: Proxmox workstation build
+  hosts: localhost
+  become: true
+  gather_facts: true
+  roles:
+    - user
+    - packages
+    - neovim
+    - dotfiles
+    - desktop

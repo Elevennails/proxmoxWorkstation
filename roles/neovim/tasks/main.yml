@@ -1,0 +1,39 @@
+---
+- name: Check currently installed Neovim version
+  ansible.builtin.command: "{{ neovim_bin_symlink }} --version"
+  register: nvim_current
+  changed_when: false
+  failed_when: false
+
+- name: Download Neovim release tarball ({{ neovim_release }})
+  ansible.builtin.get_url:
+    url: "https://github.com/neovim/neovim/releases/download/{{ neovim_release }}/{{ neovim_tarball }}"
+    dest: "/tmp/{{ neovim_tarball }}"
+    mode: "0644"
+    force: true
+  when: nvim_current.rc != 0
+
+- name: Remove any previous Neovim install directory
+  ansible.builtin.file:
+    path: "{{ neovim_install_dir }}"
+    state: absent
+  when: nvim_current.rc != 0
+
+- name: Extract Neovim tarball to {{ neovim_install_root }}
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ neovim_tarball }}"
+    dest: "{{ neovim_install_root }}"
+    remote_src: true
+  when: nvim_current.rc != 0
+
+- name: Symlink nvim to {{ neovim_bin_symlink }}
+  ansible.builtin.file:
+    src: "{{ neovim_install_dir }}/bin/nvim"
+    dest: "{{ neovim_bin_symlink }}"
+    state: link
+    force: true
+
+- name: Remove downloaded tarball
+  ansible.builtin.file:
+    path: "/tmp/{{ neovim_tarball }}"
+    state: absent

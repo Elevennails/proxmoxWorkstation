@@ -1,0 +1,47 @@
+---
+- name: Configure Xwrapper to allow console users to start X
+  ansible.builtin.copy:
+    dest: /etc/X11/Xwrapper.config
+    content: |
+      allowed_users=console
+      needs_root_rights=no
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Write ~/.xinitrc to launch openbox
+  ansible.builtin.copy:
+    dest: "/home/{{ workstation_user }}/.xinitrc"
+    content: |
+      #!/bin/sh
+      exec openbox-session
+    owner: "{{ workstation_user }}"
+    group: "{{ workstation_user }}"
+    mode: "0755"
+
+- name: Ensure openbox config directory exists
+  ansible.builtin.file:
+    path: "/home/{{ workstation_user }}/.config/openbox"
+    state: directory
+    owner: "{{ workstation_user }}"
+    group: "{{ workstation_user }}"
+    mode: "0755"
+
+- name: Install openbox rc.xml (ported from source workstation)
+  ansible.builtin.copy:
+    src: rc.xml
+    dest: "/home/{{ workstation_user }}/.config/openbox/rc.xml"
+    owner: "{{ workstation_user }}"
+    group: "{{ workstation_user }}"
+    mode: "0644"
+
+- name: Seed openbox autostart (xterm + slock bind)
+  ansible.builtin.copy:
+    dest: "/home/{{ workstation_user }}/.config/openbox/autostart"
+    content: |
+      #!/bin/sh
+      xterm &
+    owner: "{{ workstation_user }}"
+    group: "{{ workstation_user }}"
+    mode: "0755"
+    force: false

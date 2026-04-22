@@ -1,0 +1,24 @@
+---
+- name: Ensure ~/.config exists
+  ansible.builtin.file:
+    path: "/home/{{ workstation_user }}/.config"
+    state: directory
+    owner: "{{ workstation_user }}"
+    group: "{{ workstation_user }}"
+    mode: "0755"
+
+- name: Clone tmux config to ~/.config/tmux
+  ansible.builtin.git:
+    repo: "{{ tmux_repo }}"
+    dest: "/home/{{ workstation_user }}/.config/tmux"
+    update: true
+  become: true
+  become_user: "{{ workstation_user }}"
+
+- name: Clone kickstart.nvim to ~/.config/nvim
+  ansible.builtin.git:
+    repo: "{{ nvim_repo }}"
+    dest: "/home/{{ workstation_user }}/.config/nvim"
+    update: true
+  become: true
+  become_user: "{{ workstation_user }}"
