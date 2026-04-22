@@ -11,7 +11,7 @@ workstation_user_groups:
 # SSH pubkeys are fetched live from https://github.com/<user>.keys
 workstation_github_user: Elevennails
 
-tmux_repo: "https://github.com/Elevennails/tmux.config"
+tmux_repo: "https://github.com/Elevennails/tmux_dotfiles"
 nvim_repo: "https://github.com/Elevennails/kickstart.nvim"
 
 # Neovim release tag — "stable" tracks the latest stable, or pin (e.g. "v0.10.2").
