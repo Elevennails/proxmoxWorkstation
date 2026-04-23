@@ -1,4 +1,11 @@
 ---
+- name: Ensure python3-passlib is installed (required by password_hash filter)
+  ansible.builtin.apt:
+    name: python3-passlib
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
 - name: Generate 21-character random root password
   ansible.builtin.set_fact:
     root_password: "{{ lookup('password', '/dev/null length=21 chars=ascii_letters,digits') }}"
