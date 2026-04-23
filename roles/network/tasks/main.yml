@@ -1,0 +1,33 @@
+---
+- name: Read current vmbr0 mode
+  ansible.builtin.shell: |
+    set -o pipefail
+    grep -E '^iface vmbr0 inet ' /etc/network/interfaces || true
+  args:
+    executable: /bin/bash
+  register: vmbr0_current
+  changed_when: false
+
+- name: Back up /etc/network/interfaces before switching vmbr0 to DHCP
+  ansible.builtin.copy:
+    src: /etc/network/interfaces
+    dest: /etc/network/interfaces.pre-dhcp
+    remote_src: true
+    force: false
+  when: "'iface vmbr0 inet static' in vmbr0_current.stdout"
+
+- name: Rewrite vmbr0 stanza to inet dhcp (drops address/gateway/netmask/dns-*)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    awk '
+      /^iface vmbr0 inet static/ { print "iface vmbr0 inet dhcp"; in_vmbr0=1; next }
+      in_vmbr0 && /^(iface |auto )/ { in_vmbr0=0 }
+      in_vmbr0 && /^[[:space:]]+(address|gateway|netmask|dns-)/ { next }
+      { print }
+    ' /etc/network/interfaces.pre-dhcp > /etc/network/interfaces.new
+    install -m 0644 -o root -g root /etc/network/interfaces.new /etc/network/interfaces
+    rm -f /etc/network/interfaces.new
+  args:
+    executable: /bin/bash
+  when: "'iface vmbr0 inet static' in vmbr0_current.stdout"
+  notify: Reload network

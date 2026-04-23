@@ -1,3 +1,5 @@
 *.retry
 *.swp
 .vault_pass
+.claude/
+.fuse_hidden*
