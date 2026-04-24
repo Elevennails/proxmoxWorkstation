@@ -109,6 +109,12 @@ Defined in `roles/desktop/files/rc.xml`.
 |------|--------|
 | `Super + L` | Lock the screen with `slock` |
 
+### Re-open the tmux terminal
+
+| Keys | Action |
+|------|--------|
+| `Super + T` | Launch a fullscreen xterm that re-attaches to the tmux session on desktop 1 (creates it if missing) |
+
 `slock` blanks every output and waits for your **user** password. Type it
 and press Enter to unlock (the screen stays black while you type — there is
 no prompt). Root cannot unlock because the root account is locked.
