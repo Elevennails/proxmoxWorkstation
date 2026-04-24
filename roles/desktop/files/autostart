@@ -1,4 +1,5 @@
-# Ensure 2 desktops
+# Auto-tune Xft.dpi from the primary monitor's EDID before any clients launch
+~/.config/openbox/auto-dpi.sh
 
 # Start xterm on desktop 1
 xterm -fullscreen -fg white -bg black -fa "JetBrainsMono Nerd Font Mono" -fs 12 -e "tmux attach-session -t 0 || tmux new-session -s 0" &

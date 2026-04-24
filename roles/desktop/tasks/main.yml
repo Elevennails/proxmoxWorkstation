@@ -44,6 +44,14 @@
     group: "{{ workstation_user }}"
     mode: "0755"
 
+- name: Install auto-DPI helper invoked from openbox autostart
+  ansible.builtin.copy:
+    src: auto-dpi.sh
+    dest: "/home/{{ workstation_user }}/.config/openbox/auto-dpi.sh"
+    owner: "{{ workstation_user }}"
+    group: "{{ workstation_user }}"
+    mode: "0755"
+
 - name: Ensure user config directory exists
   ansible.builtin.file:
     path: "/home/{{ workstation_user }}/.config"
