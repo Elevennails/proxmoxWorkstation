@@ -34,6 +34,7 @@ workstation_apt_packages:
   - chromium
   - virt-viewer
   - xdg-utils
+  - libfile-mimeinfo-perl
   - unzip
   - fontconfig
 
