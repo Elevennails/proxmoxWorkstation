@@ -2,8 +2,8 @@
 
 Ansible playbook that turns a fresh Proxmox VE install into a single-seat
 workstation: console user, Xorg + Openbox, tmux, Chromium pointed at the PVE
-web UI, and virt-viewer for guest consoles. Root is locked down at the end of
-the run.
+web UI, and virt-viewer for guest consoles. The root account is locked at
+the end of the run (Ubuntu-style: no password auth anywhere, use `sudo`).
 
 ## What the playbook does
 
@@ -29,10 +29,11 @@ Roles are executed in the order listed in `site.yml`:
    networking with `ifreload -a`. DNS is then supplied by the DHCP lease
    (dhclient's default `make_resolv_conf` hook writes `/etc/resolv.conf`).
    The original file is saved as `/etc/network/interfaces.pre-dhcp`.
-8. **harden** — generates a 21-character random root password, sets it,
-   disables `PermitRootLogin` in `sshd_config`, empties `/etc/securetty`
-   so root cannot log in on a TTY, and prints the new password once at the
-   end of the run.
+8. **harden** — locks the root account (`passwd -l root`, i.e. no valid
+   password hash in `/etc/shadow`) and disables `PermitRootLogin` in
+   `sshd_config`. With the account locked, every password-based auth path
+   (TTY login, `su`, password SSH, PVE `root@pam`) fails automatically;
+   root is reachable only via `sudo` from the admin user.
 
 ## Running it
 
@@ -46,8 +47,8 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/Elevennails/proxmoxWorks
 git and ansible, clones this repo to `/opt/proxmoxWorkstation`, and runs
 `ansible-playbook site.yml`. The playbook prompts for the admin username.
 
-When the playbook finishes it prints the new root password — **copy it now,
-it is not stored or shown again**. Then, on the PVE console:
+When the playbook finishes, set a password for the admin user so sudo and
+the PVE web UI work:
 
 ```sh
 passwd <username>   # set the admin user's password (unlocks sudo + PVE UI)
@@ -60,14 +61,17 @@ Log out of root, log in as the admin user on tty1, and run `startx`.
 After a successful run:
 
 - SSH remote root login: disabled (`PermitRootLogin no`).
-- Console (TTY) root login: disabled (`/etc/securetty` is empty, so
-  `pam_securetty` blocks root on every tty).
-- Root password: a random 21-character string printed once by the
-  playbook. It is still useful for:
-  - the PVE web UI as `root@pam`, and
-  - `su -` from the admin user's shell.
+- Root password auth: **locked** on every service (TTY, `su`, password SSH,
+  PVE `root@pam`). The password field in `/etc/shadow` is `!<hash>`, so no
+  password matches.
+- To get a root shell, log in as the admin user and run `sudo -i`.
+- For the PVE web UI, log in as `<username>@pam` — the playbook already
+  grants that account the `Administrator` role.
 
-If you lose it, reset from a rescue/single-user boot with `passwd root`.
+If you ever need to set a real root password back (e.g. for disaster
+recovery), boot to a rescue/single-user shell and run `passwd root`, or
+from the admin user run `sudo passwd root` followed by
+`sudo passwd -u root`.
 
 ## Desktop layout
 
@@ -107,7 +111,7 @@ Defined in `roles/desktop/files/rc.xml`.
 
 `slock` blanks every output and waits for your **user** password. Type it
 and press Enter to unlock (the screen stays black while you type — there is
-no prompt). Root cannot unlock because its console login is disabled.
+no prompt). Root cannot unlock because the root account is locked.
 
 ## Configuration
 
