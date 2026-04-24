@@ -61,7 +61,7 @@
 
     <keybind key="W-t">
       <action name="Execute">
-        <command>sh -c 'xterm -fullscreen -fg white -bg black -e "tmux attach-session -t 0 || tmux new-session -s 0"'</command>
+        <command>sh -c 'xterm -fullscreen -fg white -bg black -fa "JetBrainsMono Nerd Font Mono" -fs 12 -e "tmux attach-session -t 0 || tmux new-session -s 0"'</command>
       </action>
    </keybind>
    </keyboard>
