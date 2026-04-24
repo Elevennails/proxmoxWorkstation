@@ -58,4 +58,4 @@
     pveum acl modify /
     --users {{ workstation_user }}@pam
     --roles Administrator
-  changed_when: false
+    --propagate 1
