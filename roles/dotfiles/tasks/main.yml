@@ -15,6 +15,29 @@
   become: true
   become_user: "{{ workstation_user }}"
 
+- name: Symlink ~/.tmux.conf to the repo's tmux.conf
+  ansible.builtin.file:
+    src: "/home/{{ workstation_user }}/.config/tmux/tmux/.tmux.conf"
+    dest: "/home/{{ workstation_user }}/.tmux.conf"
+    state: link
+    force: true
+    owner: "{{ workstation_user }}"
+    group: "{{ workstation_user }}"
+
+- name: Clone tmux plugin manager (TPM) to ~/.tmux/plugins/tpm
+  ansible.builtin.git:
+    repo: "https://github.com/tmux-plugins/tpm"
+    dest: "/home/{{ workstation_user }}/.tmux/plugins/tpm"
+    update: true
+  become: true
+  become_user: "{{ workstation_user }}"
+
+- name: Install tmux plugins headlessly via TPM
+  ansible.builtin.command: /home/{{ workstation_user }}/.tmux/plugins/tpm/bin/install_plugins
+  become: true
+  become_user: "{{ workstation_user }}"
+  changed_when: false
+
 - name: Clone kickstart.nvim to ~/.config/nvim
   ansible.builtin.git:
     repo: "{{ nvim_repo }}"
