@@ -44,3 +44,21 @@
     group: "{{ workstation_user }}"
     mode: "0755"
 
+- name: Ensure user config directory exists
+  ansible.builtin.file:
+    path: "/home/{{ workstation_user }}/.config"
+    state: directory
+    owner: "{{ workstation_user }}"
+    group: "{{ workstation_user }}"
+    mode: "0755"
+
+- name: Register remote-viewer as default handler for Proxmox SPICE (.vv) files
+  ansible.builtin.copy:
+    dest: "/home/{{ workstation_user }}/.config/mimeapps.list"
+    content: |
+      [Default Applications]
+      application/x-virt-viewer=remote-viewer.desktop
+    owner: "{{ workstation_user }}"
+    group: "{{ workstation_user }}"
+    mode: "0644"
+

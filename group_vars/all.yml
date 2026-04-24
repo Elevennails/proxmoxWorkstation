@@ -33,6 +33,7 @@ workstation_apt_packages:
   - slock
   - chromium
   - virt-viewer
+  - xdg-utils
   - unzip
   - fontconfig
 
