@@ -62,3 +62,16 @@
     group: "{{ workstation_user }}"
     mode: "0644"
 
+- name: Register .vv glob with the shared MIME database
+  ansible.builtin.copy:
+    src: virt-viewer-mime.xml
+    dest: /usr/share/mime/packages/virt-viewer-mime.xml
+    owner: root
+    group: root
+    mode: "0644"
+  register: vv_mime_package
+
+- name: Rebuild the shared MIME database
+  ansible.builtin.command: update-mime-database /usr/share/mime
+  when: vv_mime_package.changed
+
