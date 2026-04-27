@@ -1,13 +1,18 @@
 # Auto-tune Xft.dpi from the primary monitor's EDID before any clients launch
 ~/.config/openbox/auto-dpi.sh
 
+# Disable X screen blanking and DPMS power-saving while logged in
+xset s off
+xset s noblank
+xset -dpms
+
 # Start xterm on desktop 1
 xterm -fullscreen -fg white -bg black -fa "JetBrainsMono Nerd Font Mono" -fs 12 -e "tmux attach-session -t 0 || tmux new-session -s 0" &
 XTERM_PID=$!
 
 #Start Chromium on desktop 2
 chromium --process-per-site --disable-extensions --disable-sync --disable-translate --disable-background-networking --disable-component-update --disable-breakpad --no-first-run \
-    --no-default-browser-check --password-store=basic --start-maximized --disable-session-crashed-bubble --hide-crash-restore-bubble --user-data-dir=$host/.config/chrome-proxmox \
+    --no-default-browser-check --password-store=basic --start-maximized --disable-session-crashed-bubble --hide-crash-restore-bubble --user-data-dir=$HOME/.config/chrome-proxmox \
     --disable-restore-session-state --test-type --app=https://127.0.0.1:8006 &
 CHROME_PID=$!
 
