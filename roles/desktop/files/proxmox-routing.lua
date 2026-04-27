@@ -16,10 +16,17 @@ local class = get_window_class() or ""
 
 debug_print("rule fired: class=[" .. class .. "] title=[" .. title .. "]")
 
+-- After moving the window we also switch the active workspace so the
+-- user is taken to the popout instead of being left on the launching
+-- desktop. Without this, devilspie2 0.43 moves the window correctly but
+-- the user has no visual cue and thinks the routing failed.
+
 if string.find(title, "noVNC") then
-    debug_print("  -> set_window_workspace(4)")
+    debug_print("  -> route to desktop 4")
     set_window_workspace(4)
+    change_workspace(4)
 elseif string.find(title, "Proxmox Console") then
-    debug_print("  -> set_window_workspace(5)")
+    debug_print("  -> route to desktop 5")
     set_window_workspace(5)
+    change_workspace(5)
 end
