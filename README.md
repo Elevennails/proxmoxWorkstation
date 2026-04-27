@@ -60,6 +60,43 @@ passwd <username>   # set the admin user's password (unlocks sudo + PVE UI)
 
 Log out of root, log in as the admin user on tty1, and run `startx`.
 
+## First-login plugin activation
+
+The playbook clones the tmux and Neovim configs and pre-fetches plugins, but
+each plugin manager still needs a one-time activation inside its host
+program before the plugins are usable.
+
+### tmux (TPM)
+
+The `dotfiles` role clones [TPM](https://github.com/tmux-plugins/tpm) to
+`~/.tmux/plugins/tpm` and runs its headless `install_plugins` script, so
+the plugin trees are already on disk. To load them into your running tmux
+session:
+
+1. Start tmux on desktop 1 (xterm autostarts it, or press `Super + T`).
+2. Reload the config so TPM picks up the plugin list:
+   `prefix + r` if the keybind is defined, otherwise
+   `: source-file ~/.tmux.conf` from the tmux command prompt
+   (`prefix + :`).
+3. Force-install / refresh plugins inside tmux: **`prefix + I`** (capital
+   I). TPM will fetch any missing plugins and report when done.
+
+### Neovim (lazy.nvim via kickstart.nvim)
+
+The cloned `~/.config/nvim` is [kickstart.nvim](https://github.com/nvim-lua/kickstart.nvim),
+which uses [lazy.nvim](https://github.com/folke/lazy.nvim) as its plugin
+manager. lazy bootstraps itself on first launch:
+
+1. Run `nvim` once. lazy.nvim will clone itself and the plugins listed in
+   the config — let the install screen finish before quitting.
+2. After it returns to the editor, run `:Lazy sync` to make sure
+   everything is at the pinned version, and `:checkhealth` to confirm
+   parsers/LSPs/treesitter compiled cleanly (this is what the new `gcc`
+   apt package is for — Treesitter parsers and `telescope-fzf-native`
+   need a C compiler).
+3. LSP servers and tools are managed by `:Mason`; open it once to install
+   any servers kickstart enables by default.
+
 ## Root account
 
 After a successful run:
