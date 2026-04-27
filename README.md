@@ -22,7 +22,11 @@ Roles are executed in the order listed in `site.yml`:
 5. **dotfiles** — clones tmux and Neovim dotfile repos into the user's
    home.
 6. **desktop** — writes `Xwrapper.config`, the user's `~/.xinitrc`, and
-   the Openbox `rc.xml` / `autostart` that define the three-desktop layout.
+   the Openbox `rc.xml` / `autostart` that define the five-desktop
+   layout. Also drops a `systemd-logind` override so the laptop lid is
+   ignored and the power button triggers a clean shutdown, and a
+   Chromium managed policy that auto-opens downloaded `.vv` SPICE files
+   in `virt-viewer` without prompting.
 7. **network** — rewrites the `vmbr0` stanza in
    `/etc/network/interfaces` from `inet static` to `inet dhcp`, removing
    any `address` / `gateway` / `netmask` / `dns-*` lines, and reloads
@@ -75,33 +79,56 @@ from the admin user run `sudo passwd root` followed by
 
 ## Desktop layout
 
-Openbox is configured with **three** desktops, each dedicated to one task:
+Openbox is configured with **five** desktops, each dedicated to one task:
 
 | Desktop | Contents |
 |---------|----------|
 | 1 | Fullscreen xterm running `tmux` |
 | 2 | Chromium, fullscreen, pointed at `https://127.0.0.1:8006` (PVE web UI) |
-| 3 | `virt-viewer` / `remote-viewer` sessions (guest consoles) |
+| 3 | `virt-viewer` / `remote-viewer` sessions (SPICE guest consoles) |
+| 4 | Proxmox **noVNC** popouts (any window with `noVNC` in the title) |
+| 5 | Proxmox **xterm.js** shell popouts (window title contains `Proxmox Console`) |
 
-The Openbox `autostart` launches desktops 1 and 2 on login; virt-viewer
+The Openbox `autostart` launches desktops 1 and 2 on login. virt-viewer
 windows are routed to desktop 3 automatically via an `application` rule in
-`rc.xml`. When Chromium, xterm, and all viewer processes have exited,
-Openbox exits and you return to the login prompt.
+`rc.xml`. Desktops 4 and 5 are populated by a small `wmctrl` poll loop
+also started from `autostart`: it ticks every 4 seconds, finds any
+Chromium popout whose title matches the noVNC / Proxmox Console patterns,
+moves it to the correct desktop, and switches the active workspace so the
+popout is in front of you. Each move is appended to
+`~/.cache/proxmox-routing.log` for inspection.
+
+When Chromium, xterm, and all viewer processes have exited, Openbox exits
+and you return to the login prompt.
+
+## System policies
+
+Set up by the **desktop** role for laptop-as-workstation use:
+
+- **Lid switch ignored** on AC, battery, and dock — the lid never
+  triggers suspend (`/etc/systemd/logind.conf.d/10-workstation-power.conf`).
+- **Power button = poweroff** — pressing the laptop power button performs
+  a clean shutdown via systemd-logind.
+- **No screen blanking** — `xset s off / s noblank / -dpms` runs at
+  session start, so the display never blanks while you're logged in.
+- **Auto-open `.vv` SPICE files** — a Chromium managed policy at
+  `/etc/chromium/policies/managed/proxmox-spice.json` lists `vv` in
+  `AutoOpenFileTypes`, so clicking the Proxmox "Console (SPICE)" button
+  hands the download straight to `virt-viewer` without a save prompt.
 
 ## Key bindings
 
 Defined in `roles/desktop/files/rc.xml`.
 
-### Switch desktop / terminal
+### Switch desktop / cycle windows
 
 | Keys | Action |
 |------|--------|
-| `Ctrl + Alt + 1` | Go to desktop 1 (tmux) |
-| `Ctrl + Alt + 2` | Go to desktop 2 (Chromium / PVE UI) |
-| `Ctrl + Alt + 3` | Go to desktop 3 (virt-viewer) |
-| `Super + 1` / `Super + 2` / `Super + 3` | Same as above (Super = Windows key) |
-| `Alt + Tab` | Cycle to next window |
+| `Ctrl + Alt + 1…5` | Go to desktop 1–5 |
+| `Super + 1…5` | Same as above (Super = Windows key) |
+| `Alt + Tab` | Cycle to next window on the current desktop |
 | `Alt + Shift + Tab` | Cycle to previous window |
+| `Super + Tab` | Show the combined window list across all desktops (navigate to a lost window) |
 
 ### Lock the screen
 
@@ -109,11 +136,24 @@ Defined in `roles/desktop/files/rc.xml`.
 |------|--------|
 | `Super + L` | Lock the screen with `slock` |
 
-### Re-open the tmux terminal
+### Respawn closed sessions
 
 | Keys | Action |
 |------|--------|
 | `Super + T` | Launch a fullscreen xterm that re-attaches to the tmux session on desktop 1 (creates it if missing) |
+| `Super + C` | Re-launch the Chromium / PVE UI session on desktop 2 (uses the same `--user-data-dir`, so cookies and login persist) |
+
+### Close / panic-kill windows
+
+| Keys | Action |
+|------|--------|
+| `Alt + F4` | Close the focused window (graceful WM_DELETE) |
+| `Super + Shift + C` | Kill **every** Chromium process (panic close) |
+| `Super + Shift + T` | Kill **every** xterm process (panic close) |
+
+The autostart watchdog only exits Openbox when **all** of
+chromium / xterm / virt-viewer are gone, so killing one app is safe — use
+the matching `Super + T` / `Super + C` to bring it back.
 
 `slock` blanks every output and waits for your **user** password. Type it
 and press Enter to unlock (the screen stays black while you type — there is
