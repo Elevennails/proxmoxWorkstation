@@ -110,3 +110,19 @@
   ansible.builtin.command: update-mime-database /usr/share/mime
   when: vv_mime_package.changed
 
+- name: Ensure Chromium managed policies directory exists
+  ansible.builtin.file:
+    path: /etc/chromium/policies/managed
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Auto-open .vv downloads in virt-viewer (Chromium managed policy)
+  ansible.builtin.copy:
+    src: chromium-spice-policy.json
+    dest: /etc/chromium/policies/managed/proxmox-spice.json
+    owner: root
+    group: root
+    mode: "0644"
+
