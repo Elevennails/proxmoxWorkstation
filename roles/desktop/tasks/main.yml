@@ -74,6 +74,22 @@
     group: "{{ workstation_user }}"
     mode: "0755"
 
+- name: Ensure devilspie2 config directory exists
+  ansible.builtin.file:
+    path: "/home/{{ workstation_user }}/.config/devilspie2"
+    state: directory
+    owner: "{{ workstation_user }}"
+    group: "{{ workstation_user }}"
+    mode: "0755"
+
+- name: Install devilspie2 rules for Proxmox console window routing
+  ansible.builtin.copy:
+    src: proxmox-routing.lua
+    dest: "/home/{{ workstation_user }}/.config/devilspie2/proxmox-routing.lua"
+    owner: "{{ workstation_user }}"
+    group: "{{ workstation_user }}"
+    mode: "0644"
+
 - name: Ensure user config directory exists
   ansible.builtin.file:
     path: "/home/{{ workstation_user }}/.config"

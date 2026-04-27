@@ -142,19 +142,9 @@
       <desktop>3</desktop>
       <focus>yes</focus>
     </application>
-
-    <!-- Proxmox noVNC popout (Chromium) on desktop 4 -->
-    <application title="*noVNC*">
-      <maximize>yes</maximize>
-      <desktop>4</desktop>
-      <focus>yes</focus>
-    </application>
-
-    <!-- Proxmox xterm.js shell popout (Chromium) on desktop 5 -->
-    <application title="*Proxmox Console*">
-      <maximize>yes</maximize>
-      <desktop>5</desktop>
-      <focus>yes</focus>
-    </application>
+    <!-- Routing of Proxmox noVNC and xterm.js popouts to desktops 4/5 is
+         handled by devilspie2 (see roles/desktop/files/proxmox-routing.lua):
+         openbox <application> rules cannot match by window title, which is
+         the only attribute that distinguishes those popouts. -->
   </applications>
 </openbox_config>
