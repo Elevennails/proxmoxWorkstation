@@ -2,7 +2,7 @@
 <openbox_config xmlns="http://openbox.org/3.4/rc">
   
   <desktops>
-    <number>3</number>
+    <number>5</number>
   </desktops>
 
   <keyboard>
@@ -45,6 +45,30 @@
       </action>
     </keybind>
 
+    <keybind key="W-4">
+      <action name="DesktopSwitch">
+        <desktop>4</desktop>
+      </action>
+    </keybind>
+
+    <keybind key="W-5">
+      <action name="DesktopSwitch">
+        <desktop>5</desktop>
+      </action>
+    </keybind>
+
+    <keybind key="C-A-4">
+      <action name="GoToDesktop">
+        <to>4</to>
+      </action>
+    </keybind>
+
+    <keybind key="C-A-5">
+      <action name="GoToDesktop">
+        <to>5</to>
+      </action>
+    </keybind>
+
     <keybind key="A-Tab">
       <action name="NextWindow"/>
     </keybind>
@@ -62,6 +86,38 @@
     <keybind key="W-t">
       <action name="Execute">
         <command>sh -c 'xterm -fullscreen -fg white -bg black -fa "JetBrainsMono Nerd Font Mono" -fs 12 -e "tmux attach-session -t 0 || tmux new-session -s 0"'</command>
+      </action>
+   </keybind>
+
+    <keybind key="W-c">
+      <action name="Execute">
+        <command>sh -c 'chromium --process-per-site --disable-extensions --disable-sync --disable-translate --disable-background-networking --disable-component-update --disable-breakpad --no-first-run --no-default-browser-check --password-store=basic --start-maximized --disable-session-crashed-bubble --hide-crash-restore-bubble --user-data-dir=$HOME/.config/chrome-proxmox --disable-restore-session-state --test-type --app=https://127.0.0.1:8006'</command>
+      </action>
+   </keybind>
+
+    <!-- Close the focused window -->
+    <keybind key="A-F4">
+      <action name="Close"/>
+    </keybind>
+
+    <!-- Show all windows across all desktops, grouped by desktop -->
+    <keybind key="W-Tab">
+      <action name="ShowMenu">
+        <menu>client-list-combined-menu</menu>
+      </action>
+    </keybind>
+
+    <!-- Panic close: kill every Chromium window regardless of desktop/focus -->
+    <keybind key="W-S-c">
+      <action name="Execute">
+        <command>pkill -x chromium</command>
+      </action>
+   </keybind>
+
+    <!-- Panic close: kill every xterm regardless of desktop/focus -->
+    <keybind key="W-S-t">
+      <action name="Execute">
+        <command>pkill -x xterm</command>
       </action>
    </keybind>
    </keyboard>
@@ -84,6 +140,20 @@
     <application class="Remote-viewer">
       <maximize>yes</maximize>
       <desktop>3</desktop>
+      <focus>yes</focus>
+    </application>
+
+    <!-- Proxmox noVNC popout (Chromium) on desktop 4 -->
+    <application title="*noVNC*">
+      <maximize>yes</maximize>
+      <desktop>4</desktop>
+      <focus>yes</focus>
+    </application>
+
+    <!-- Proxmox xterm.js shell popout (Chromium) on desktop 5 -->
+    <application title="*Proxmox Console*">
+      <maximize>yes</maximize>
+      <desktop>5</desktop>
       <focus>yes</focus>
     </application>
   </applications>
