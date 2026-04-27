@@ -1,4 +1,18 @@
 ---
+- name: Configure logind power handling (ignore lid, power button = shutdown)
+  ansible.builtin.copy:
+    dest: /etc/systemd/logind.conf.d/10-workstation-power.conf
+    content: |
+      [Login]
+      HandleLidSwitch=ignore
+      HandleLidSwitchExternalPower=ignore
+      HandleLidSwitchDocked=ignore
+      HandlePowerKey=poweroff
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart systemd-logind
+
 - name: Configure Xwrapper to allow console users to start X
   ansible.builtin.copy:
     dest: /etc/X11/Xwrapper.config
