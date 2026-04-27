@@ -15,16 +15,22 @@ xset -dpms
 # when that happens. Switches the active desktop only on an actual move
 # so re-focusing an already-routed window doesn't yank the user.
 proxmox_routing() {
-    while sleep 2; do
+    local log="$HOME/.cache/proxmox-routing.log"
+    mkdir -p "$(dirname "$log")"
+    while sleep 4; do
         wmctrl -l 2>/dev/null | while read -r wid desk _ title; do
             case "$title" in
                 *noVNC*)
                     [ "$desk" = "3" ] && continue
-                    wmctrl -i -r "$wid" -t 3 && wmctrl -s 3
+                    if wmctrl -i -r "$wid" -t 3 && wmctrl -s 3; then
+                        printf '[%s] %s "%s" -> desktop 4\n' "$(date '+%F %T')" "$wid" "$title" >> "$log"
+                    fi
                     ;;
                 *"Proxmox Console"*)
                     [ "$desk" = "4" ] && continue
-                    wmctrl -i -r "$wid" -t 4 && wmctrl -s 4
+                    if wmctrl -i -r "$wid" -t 4 && wmctrl -s 4; then
+                        printf '[%s] %s "%s" -> desktop 5\n' "$(date '+%F %T')" "$wid" "$title" >> "$log"
+                    fi
                     ;;
             esac
         done
