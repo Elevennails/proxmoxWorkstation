@@ -34,6 +34,7 @@ workstation_apt_packages:
   - chromium
   - virt-viewer
   - devilspie2
+  - python3-xdg
   - xdg-utils
   - libfile-mimeinfo-perl
   - unzip
