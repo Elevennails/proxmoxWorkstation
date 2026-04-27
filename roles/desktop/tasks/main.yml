@@ -1,4 +1,12 @@
 ---
+- name: Ensure logind drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/logind.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
 - name: Configure logind power handling (ignore lid, power button = shutdown)
   ansible.builtin.copy:
     dest: /etc/systemd/logind.conf.d/10-workstation-power.conf
