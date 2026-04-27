@@ -74,29 +74,10 @@
     group: "{{ workstation_user }}"
     mode: "0755"
 
-- name: Ensure devilspie2 config directory exists
+- name: Remove obsolete devilspie2 config directory (replaced by wmctrl polling)
   ansible.builtin.file:
     path: "/home/{{ workstation_user }}/.config/devilspie2"
-    state: directory
-    owner: "{{ workstation_user }}"
-    group: "{{ workstation_user }}"
-    mode: "0755"
-
-- name: Install devilspie2 master config (registers script for open + focus events)
-  ansible.builtin.copy:
-    src: devilspie2.lua
-    dest: "/home/{{ workstation_user }}/.config/devilspie2/devilspie2.lua"
-    owner: "{{ workstation_user }}"
-    group: "{{ workstation_user }}"
-    mode: "0644"
-
-- name: Install devilspie2 rules for Proxmox console window routing
-  ansible.builtin.copy:
-    src: proxmox-routing.lua
-    dest: "/home/{{ workstation_user }}/.config/devilspie2/proxmox-routing.lua"
-    owner: "{{ workstation_user }}"
-    group: "{{ workstation_user }}"
-    mode: "0644"
+    state: absent
 
 - name: Ensure user config directory exists
   ansible.builtin.file:

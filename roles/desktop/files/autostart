@@ -7,8 +7,30 @@ xset s noblank
 xset -dpms
 
 # Route Proxmox Chromium popouts (noVNC, xterm.js) to dedicated desktops.
-# Started before the apps so it catches every window-create / focus event.
-devilspie2 &
+# Polls every 2s rather than using devilspie2: Ubuntu's devilspie2 0.43
+# has no name-changed event, so it can't see Chromium's late title update
+# on a popout, which is the only signal that distinguishes the popouts
+# from the main Proxmox UI window. The poll re-checks every window each
+# tick, so it routes the popout once the title settles regardless of
+# when that happens. Switches the active desktop only on an actual move
+# so re-focusing an already-routed window doesn't yank the user.
+proxmox_routing() {
+    while sleep 2; do
+        wmctrl -l 2>/dev/null | while read -r wid desk _ title; do
+            case "$title" in
+                *noVNC*)
+                    [ "$desk" = "3" ] && continue
+                    wmctrl -i -r "$wid" -t 3 && wmctrl -s 3
+                    ;;
+                *"Proxmox Console"*)
+                    [ "$desk" = "4" ] && continue
+                    wmctrl -i -r "$wid" -t 4 && wmctrl -s 4
+                    ;;
+            esac
+        done
+    done
+}
+proxmox_routing &
 
 # Start xterm on desktop 1
 xterm -fullscreen -fg white -bg black -fa "JetBrainsMono Nerd Font Mono" -fs 12 -e "tmux attach-session -t 0 || tmux new-session -s 0" &
