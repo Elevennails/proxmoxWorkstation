@@ -16,23 +16,6 @@
     create_home: true
     state: present
 
-- name: Ensure .ssh directory exists
-  ansible.builtin.file:
-    path: "/home/{{ workstation_user }}/.ssh"
-    state: directory
-    owner: "{{ workstation_user }}"
-    group: "{{ workstation_user }}"
-    mode: "0700"
-
-- name: Fetch SSH public keys from github.com/{{ workstation_github_user }}.keys
-  ansible.builtin.get_url:
-    url: "https://github.com/{{ workstation_github_user }}.keys"
-    dest: "/home/{{ workstation_user }}/.ssh/authorized_keys"
-    owner: "{{ workstation_user }}"
-    group: "{{ workstation_user }}"
-    mode: "0600"
-    force: true
-
 - name: Grant sudo group password-required sudo
   ansible.builtin.copy:
     dest: /etc/sudoers.d/10-sudo-group

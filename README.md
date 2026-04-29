@@ -10,8 +10,7 @@ the end of the run (Ubuntu-style: no password auth anywhere, use `sudo`).
 Roles are executed in the order listed in `site.yml`:
 
 1. **user** — installs `sudo`, creates the admin account (username is
-   prompted for at the start of the run), fetches SSH public keys from
-   `https://github.com/<workstation_github_user>.keys`, grants `%sudo`
+   prompted for at the start of the run), grants `%sudo`
    password-required sudo, and creates a matching `<user>@pam` PVE user with
    the `Administrator` role.
 2. **packages** — installs the apt packages listed in
@@ -200,8 +199,6 @@ no prompt). Root cannot unlock because the root account is locked.
 
 Edit `group_vars/all.yml` to change:
 
-- `workstation_github_user` — GitHub account whose public keys become
-  `authorized_keys` for the new user.
 - `workstation_user_groups` — supplementary groups for the new user.
 - `workstation_apt_packages` — the apt package list.
 - `tmux_repo`, `nvim_repo` — dotfile sources.
