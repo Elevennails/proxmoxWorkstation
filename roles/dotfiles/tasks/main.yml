@@ -33,7 +33,15 @@
   become_user: "{{ workstation_user }}"
 
 - name: Install tmux plugins headlessly via TPM
-  ansible.builtin.command: /home/{{ workstation_user }}/.tmux/plugins/tpm/bin/install_plugins
+  ansible.builtin.shell: |
+    set -e
+    tmux kill-session -t _tpm_install 2>/dev/null || true
+    tmux new-session -d -s _tpm_install
+    tmux source-file "/home/{{ workstation_user }}/.tmux.conf"
+    "/home/{{ workstation_user }}/.tmux/plugins/tpm/bin/install_plugins"
+    tmux kill-session -t _tpm_install
+  args:
+    executable: /bin/bash
   become: true
   become_user: "{{ workstation_user }}"
   changed_when: false
