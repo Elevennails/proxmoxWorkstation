@@ -39,7 +39,7 @@ workstation_apt_packages:
   - libfile-mimeinfo-perl
   - unzip
   - fontconfig
-  - gcc
+  - build-essential
 
 # Nerd Fonts — patched dev fonts from ryanoasis/nerd-fonts
 nerdfonts_version: "v3.2.1"
