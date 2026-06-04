@@ -139,23 +139,22 @@ migrate ALL=(root) NOPASSWD: /sbin/fdisk, \
                               /sbin/blockdev
 
 # ZFS management
-migrate ALL=(root) NOPASSWD: /sbin/zfs, \
-                              /sbin/zpool
+migrate ALL=(root) NOPASSWD: /usr/sbin/zfs, \
+                              /usr/sbin/zpool
 
 
 # Proxmox VM / restore tooling
-migrate ALL=(root) NOPASSWD: /usr/bin/qmrestore, \
-                              /usr/bin/qm, \
+migrate ALL=(root) NOPASSWD: /usr/sbin/qmrestore, \
+                              /usr/sbin/qm, \
                               /usr/bin/vzdump, \
                               /usr/sbin/qemu-img, \
-                              /usr/bin/pvesm, \
-                              /usr/bin/pct
+                              /usr/sbin/pvesm, \
+                              /usr/sbin/pct
 
 # SSH agent forwarding helpers
 migrate ALL=(root) NOPASSWD: /usr/bin/ssh-keyscan, \
                               /usr/bin/ssh, \
-                              /usr/bin/scp, \
-                              /user/bin/rsync
+                              /usr/bin/scp 
 EOF
 
     chmod 440 "${sudoers_file}"
