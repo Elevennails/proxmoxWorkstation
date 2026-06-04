@@ -23,26 +23,32 @@ error()     { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 die()       { error "$*"; exit 1; }
 separator() { echo -e "${BOLD}----------------------------------------------${NC}"; }
 
-# Remote execution via migrate account
-remote() {
-  ssh -i "${SSH_KEY}" \
-      -o BatchMode=yes \
-      -o StrictHostKeyChecking=accept-new \
-      -o ConnectTimeout=10 \
-      "${REMOTE_USER}@${REMOTE_IP}" "$*"
-}
-
-# SCP via migrate account
-remote_scp() {
-  scp -i "${SSH_KEY}" \
-      -o BatchMode=yes \
-      -o StrictHostKeyChecking=accept-new \
-      "$@"
-}
-
-# --- Fixed remote account -----------------------------------------------------
+# --- Fixed remote account & local SSH identity --------------------------------
 REMOTE_USER="migrate"
+LOCAL_SSH_USER="migrate"          # local account that owns the SSH key
 DEFAULT_SSH_KEY="/home/migrate/.ssh/id_ed25519"
+
+# Remote execution: runs SSH as the local migrate user so key permissions are respected
+remote() {
+  su -s /bin/bash -c \
+    "ssh -i '${SSH_KEY}' \
+         -o BatchMode=yes \
+         -o StrictHostKeyChecking=accept-new \
+         -o ConnectTimeout=10 \
+         '${REMOTE_USER}@${REMOTE_IP}' $(printf '%q' "$*")" \
+    "${LOCAL_SSH_USER}"
+}
+
+# SCP: also runs as the migrate user
+remote_scp() {
+  local src="$1" dst="$2"
+  su -s /bin/bash -c \
+    "scp -i '${SSH_KEY}' \
+          -o BatchMode=yes \
+          -o StrictHostKeyChecking=accept-new \
+          $(printf '%q' "$src") $(printf '%q' "$dst")" \
+    "${LOCAL_SSH_USER}"
+}
 
 # --- Root check ---------------------------------------------------------------
 [[ $EUID -ne 0 ]] && die "This script must be run as root (or via sudo)."
@@ -82,9 +88,11 @@ read -rp "$(echo -e "${BOLD}Enter the IP address of the remote Proxmox node:${NC
 # --- Test SSH -----------------------------------------------------------------
 echo ""
 info "Testing SSH connection as '${REMOTE_USER}' to ${REMOTE_IP}..."
-SSH_TEST=$(ssh -i "${SSH_KEY}" -o ConnectTimeout=10 -o BatchMode=yes \
-  -o StrictHostKeyChecking=accept-new \
-  "${REMOTE_USER}@${REMOTE_IP}" "echo ok" 2>&1 || true)
+SSH_TEST=$(su -s /bin/bash -c \
+  "ssh -i '${SSH_KEY}' -o ConnectTimeout=10 -o BatchMode=yes \
+   -o StrictHostKeyChecking=accept-new \
+   '${REMOTE_USER}@${REMOTE_IP}' 'echo ok'" \
+  "${LOCAL_SSH_USER}" 2>&1 || true)
 if [[ "$SSH_TEST" != "ok" ]]; then
   error "SSH connection failed as '${REMOTE_USER}' to ${REMOTE_IP}."
   echo -e "  Authorise the key with:\n  ${BOLD}ssh-copy-id -i ${SSH_KEY}.pub ${REMOTE_USER}@${REMOTE_IP}${NC}"
