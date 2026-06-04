@@ -42,7 +42,7 @@ remote_scp() {
 
 # --- Fixed remote account -----------------------------------------------------
 REMOTE_USER="migrate"
-DEFAULT_SSH_KEY="/root/.ssh/migrate_id_rsa"
+DEFAULT_SSH_KEY="/home/migrate/.ssh/id_ed25519"
 
 # --- Root check ---------------------------------------------------------------
 [[ $EUID -ne 0 ]] && die "This script must be run as root (or via sudo)."
