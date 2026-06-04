@@ -1,0 +1,16 @@
+---
+- name: Ensure /opt/scripts exists
+  ansible.builtin.file:
+    path: /opt/scripts
+    state: directory
+    owner: "{{ workstation_user }}"
+    group: "{{ workstation_user }}"
+    mode: "0755"
+
+- name: Deploy utility scripts to /opt/scripts
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/"
+    dest: /opt/scripts/
+    owner: "{{ workstation_user }}"
+    group: "{{ workstation_user }}"
+    mode: "0755"

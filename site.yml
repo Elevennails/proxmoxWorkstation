@@ -15,4 +15,5 @@
     - dotfiles
     - desktop
     - network
+    - scripts
     - harden

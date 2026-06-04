@@ -24,6 +24,7 @@ workstation_apt_packages:
   - xorg
   - xinit
   - xserver-xorg-legacy
+  - arandr
   - dbus-x11
   - openbox
   - xterm
@@ -37,6 +38,7 @@ workstation_apt_packages:
   - unzip
   - fontconfig
   - build-essential
+
 
 # Nerd Fonts — patched dev fonts from ryanoasis/nerd-fonts
 nerdfonts_version: "v3.2.1"
