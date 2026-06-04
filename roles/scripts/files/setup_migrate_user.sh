@@ -229,14 +229,14 @@ configure_proxmox_rbac() {
     pveum role add "${PVE_ROLE}" \
         --privs "VM.Allocate,VM.Clone,VM.Config.CDROM,VM.Config.CPU,VM.Config.Cloudinit,\
 VM.Config.Disk,VM.Config.HWType,VM.Config.Memory,VM.Config.Network,VM.Config.Options,\
-VM.Console,VM.Migrate,VM.Monitor,VM.PowerMgmt,VM.Snapshot,VM.Snapshot.Rollback,\
+VM.Console,VM.Migrate,VM.PowerMgmt,VM.Snapshot,VM.Snapshot.Rollback,\
 VM.Audit,Datastore.Allocate,Datastore.AllocateSpace,Datastore.AllocateTemplate,\
 Datastore.Audit,SDN.Use,Sys.Audit" \
         2>/dev/null \
     || pveum role modify "${PVE_ROLE}" \
         --privs "VM.Allocate,VM.Clone,VM.Config.CDROM,VM.Config.CPU,VM.Config.Cloudinit,\
 VM.Config.Disk,VM.Config.HWType,VM.Config.Memory,VM.Config.Network,VM.Config.Options,\
-VM.Console,VM.Migrate,VM.Monitor,VM.PowerMgmt,VM.Snapshot,VM.Snapshot.Rollback,\
+VM.Console,VM.Migrate,VM.PowerMgmt,VM.Snapshot,VM.Snapshot.Rollback,\
 VM.Audit,Datastore.Allocate,Datastore.AllocateSpace,Datastore.AllocateTemplate,\
 Datastore.Audit,SDN.Use,Sys.Audit"
 
