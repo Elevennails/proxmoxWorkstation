@@ -191,10 +191,11 @@ distribute_to_host() {
         return
     fi
 
-    # Install the key
+    # Install the key — pass it as a variable, not via stdin pipe
     info "Installing public key on ${target}..."
-    echo "${PUB_KEY}" | rsudo_pipe "${target}" \
-        "cat >> ${REMOTE_AUTHORIZED_KEYS}"
+    SSHPASS="${SSH_PASS}" sshpass -e \
+        ssh ${SSH_OPTS} "${REMOTE_USER}@${target}" \
+        "echo '${SUDO_PASS}' | sudo -S -p '' bash -c \"echo '${PUB_KEY}' >> ${REMOTE_AUTHORIZED_KEYS}\""
     success "Public key installed"
 
     # Verify
