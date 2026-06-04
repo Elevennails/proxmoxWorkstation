@@ -152,10 +152,10 @@ migrate ALL=(root) NOPASSWD: /usr/bin/qmrestore, \
                               /usr/bin/pct
 
 # SSH agent forwarding helpers
-migrate ALL=(root) NOPASSWD: /usr/bin/ssh-keyscan, \
-migrate ALL=(root) NOPASSWD: /usr/bin/ssh, \
-migrate ALL=(root) NOPASSWD: /usr/bin/scp, \
-migrate ALL=(root) NOPASSWD: /user/bin/rsync
+migrate ALL=(root) NOPASSWD: /usr/bin/ssh-keyscan,
+                              /usr/bin/ssh, \
+                              /usr/bin/scp, \
+                              /user/bin/rsync
 EOF
 
     chmod 440 "${sudoers_file}"
