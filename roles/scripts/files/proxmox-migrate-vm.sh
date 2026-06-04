@@ -29,28 +29,29 @@ LOCAL_SSH_USER="migrate"          # local account that owns the SSH key
 DEFAULT_SSH_KEY="/home/migrate/.ssh/id_ed25519"
 
 # Remote execution: runs SSH as the local migrate user so key permissions are respected
+# All remote commands run via sudo on the remote node since migrate has NOPASSWD sudo
 remote() {
-  su -s /bin/bash -c \
-    "ssh -i '${SSH_KEY}' \
-         -o BatchMode=yes \
-         -o StrictHostKeyChecking=accept-new \
-         -o ConnectTimeout=10 \
-         '${REMOTE_USER}@${REMOTE_IP}' $(printf '%q' "$*")" \
-    "${LOCAL_SSH_USER}"
+  sudo -u "${LOCAL_SSH_USER}" ssh -i "${SSH_KEY}" \
+      -o BatchMode=yes \
+      -o StrictHostKeyChecking=accept-new \
+      -o ConnectTimeout=10 \
+      "${REMOTE_USER}@${REMOTE_IP}" "sudo $*"
 }
 
 # SCP: also runs as the migrate user
 remote_scp() {
-  local src="$1" dst="$2"
-  su -s /bin/bash -c \
-    "scp -i '${SSH_KEY}' \
-          -o BatchMode=yes \
-          -o StrictHostKeyChecking=accept-new \
-          $(printf '%q' "$src") $(printf '%q' "$dst")" \
-    "${LOCAL_SSH_USER}"
+  sudo -u "${LOCAL_SSH_USER}" scp -i "${SSH_KEY}" \
+      -o BatchMode=yes \
+      -o StrictHostKeyChecking=accept-new \
+      "$@"
 }
 
 # --- Root check ---------------------------------------------------------------
+# This script must run as root (for qm/pvesm/disk access).
+# SSH/SCP operations are delegated to the local '${LOCAL_SSH_USER}' account via
+# sudo -u, so root never needs to read the SSH key directly.
+# Ensure your sudoers allows this — run: visudo and add:
+#   %sudo ALL=(migrate) NOPASSWD: /usr/bin/ssh, /usr/bin/scp, /usr/bin/rsync
 [[ $EUID -ne 0 ]] && die "This script must be run as root (or via sudo)."
 
 # --- Dependency check ---------------------------------------------------------
@@ -69,7 +70,8 @@ echo ""
 read -rp "$(echo -e "${BOLD}Path to migrate user SSH key [default: ${DEFAULT_SSH_KEY}]:${NC} ")" SSH_KEY
 SSH_KEY="${SSH_KEY:-$DEFAULT_SSH_KEY}"
 [[ -f "$SSH_KEY" ]] || die "SSH key not found: ${SSH_KEY}"
-chmod 600 "$SSH_KEY"
+# Verify key is readable by the migrate user (do not chmod — root should not alter the key)
+sudo -u "${LOCAL_SSH_USER}" test -r "${SSH_KEY}" || die "SSH key exists but is not readable by '${LOCAL_SSH_USER}': ${SSH_KEY}"
 success "Using SSH key: ${SSH_KEY}"
 
 echo ""
@@ -88,11 +90,10 @@ read -rp "$(echo -e "${BOLD}Enter the IP address of the remote Proxmox node:${NC
 # --- Test SSH -----------------------------------------------------------------
 echo ""
 info "Testing SSH connection as '${REMOTE_USER}' to ${REMOTE_IP}..."
-SSH_TEST=$(su -s /bin/bash -c \
-  "ssh -i '${SSH_KEY}' -o ConnectTimeout=10 -o BatchMode=yes \
-   -o StrictHostKeyChecking=accept-new \
-   '${REMOTE_USER}@${REMOTE_IP}' 'echo ok'" \
-  "${LOCAL_SSH_USER}" 2>&1 || true)
+SSH_TEST=$(sudo -u "${LOCAL_SSH_USER}" ssh -i "${SSH_KEY}" \
+  -o ConnectTimeout=10 -o BatchMode=yes \
+  -o StrictHostKeyChecking=accept-new \
+  "${REMOTE_USER}@${REMOTE_IP}" "echo ok" 2>&1 || true)
 if [[ "$SSH_TEST" != "ok" ]]; then
   error "SSH connection failed as '${REMOTE_USER}' to ${REMOTE_IP}."
   echo -e "  Authorise the key with:\n  ${BOLD}ssh-copy-id -i ${SSH_KEY}.pub ${REMOTE_USER}@${REMOTE_IP}${NC}"
@@ -295,7 +296,7 @@ for i in "${!DISK_SPECS[@]}"; do
       if [[ "$OPERATION" == "sync" ]]; then
         # rsync for sync mode — only sends changed blocks
         info "  Syncing via rsync..."
-        rsync -avz --progress \
+        sudo -u "${LOCAL_SSH_USER}" rsync -avz --progress \
           -e "ssh -i ${SSH_KEY} -o BatchMode=yes -o StrictHostKeyChecking=accept-new" \
           "$DISK_PATH" "${REMOTE_USER}@${REMOTE_IP}:${REMOTE_DIR}/${DISK_FILE}"
       else
@@ -338,8 +339,8 @@ for i in "${!DISK_SPECS[@]}"; do
 
       info "  Streaming via dd over SSH..."
       dd if="$LV_PATH" bs=4M status=progress 2>/dev/null | \
-        ssh -i "${SSH_KEY}" -o BatchMode=yes \
-            "${REMOTE_USER}@${REMOTE_IP}" "dd of='${REMOTE_LV}' bs=4M status=none"
+        sudo -u "${LOCAL_SSH_USER}" ssh -i "${SSH_KEY}" -o BatchMode=yes \
+            "${REMOTE_USER}@${REMOTE_IP}" "sudo dd of='${REMOTE_LV}' bs=4M status=none"
       success "  LVM-thin volume transferred."
       ;;
 
@@ -375,15 +376,15 @@ for i in "${!DISK_SPECS[@]}"; do
           info "  Incremental ZFS send from snapshot: ${LAST_SNAP}"
           zfs snapshot "${ZFS_DATASET}@${SNAP_NAME}"
           zfs send -i "${ZFS_DATASET}@${LAST_SNAP}" "${ZFS_DATASET}@${SNAP_NAME}" | \
-            ssh -i "${SSH_KEY}" -o BatchMode=yes \
-                "${REMOTE_USER}@${REMOTE_IP}" "zfs receive -F '${REMOTE_DATASET}'"
+            sudo -u "${LOCAL_SSH_USER}" ssh -i "${SSH_KEY}" -o BatchMode=yes \
+                "${REMOTE_USER}@${REMOTE_IP}" "sudo zfs receive -F '${REMOTE_DATASET}'"
           success "  Incremental ZFS sync complete."
         else
           warn "  No common snapshot found — performing full ZFS send."
           zfs snapshot "${ZFS_DATASET}@${SNAP_NAME}"
           zfs send "${ZFS_DATASET}@${SNAP_NAME}" | \
-            ssh -i "${SSH_KEY}" -o BatchMode=yes \
-                "${REMOTE_USER}@${REMOTE_IP}" "zfs receive -F '${REMOTE_DATASET}'"
+            sudo -u "${LOCAL_SSH_USER}" ssh -i "${SSH_KEY}" -o BatchMode=yes \
+                "${REMOTE_USER}@${REMOTE_IP}" "sudo zfs receive -F '${REMOTE_DATASET}'"
           success "  Full ZFS send complete."
         fi
       else
@@ -391,8 +392,8 @@ for i in "${!DISK_SPECS[@]}"; do
         zfs snapshot "${ZFS_DATASET}@${SNAP_NAME}"
         info "  Full ZFS send..."
         zfs send "${ZFS_DATASET}@${SNAP_NAME}" | \
-          ssh -i "${SSH_KEY}" -o BatchMode=yes \
-              "${REMOTE_USER}@${REMOTE_IP}" "zfs receive -F '${REMOTE_DATASET}'"
+          sudo -u "${LOCAL_SSH_USER}" ssh -i "${SSH_KEY}" -o BatchMode=yes \
+              "${REMOTE_USER}@${REMOTE_IP}" "sudo zfs receive -F '${REMOTE_DATASET}'"
         success "  ZFS dataset transferred."
       fi
       ;;
